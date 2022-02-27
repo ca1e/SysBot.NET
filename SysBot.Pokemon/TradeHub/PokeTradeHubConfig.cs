@@ -85,5 +85,9 @@ namespace SysBot.Pokemon
         [Category(Integration), Description("Allows favored users to join the queue with a more favorable position than unfavored users.")]
         [TypeConverter(typeof(ExpandableObjectConverter))]
         public FavoredPrioritySettings Favoritism { get; set; } = new();
+
+        [Category(Integration)]
+        [TypeConverter(typeof(ExpandableObjectConverter))]
+        public QQSettings QQ { get; set; } = new();
     }
 }

@@ -3,6 +3,7 @@ using SysBot.Pokemon.Discord;
 using SysBot.Pokemon.Twitch;
 using System.Threading;
 using System.Threading.Tasks;
+using SysBot.Pokemon.QQ;
 
 namespace SysBot.Pokemon.ConsoleApp
 {
@@ -15,11 +16,14 @@ namespace SysBot.Pokemon.ConsoleApp
         public PokeBotRunnerImpl(PokeTradeHubConfig config, BotFactory<T> fac) : base(config, fac) { }
 
         private static TwitchBot<T>? Twitch;
+        private MiraiQQBot<T>? QQ;
 
         protected override void AddIntegrations()
         {
             AddDiscordBot(Hub.Config.Discord);
             AddTwitchBot(Hub.Config.Twitch);
+            //add qq bot
+            AddQQBot(Hub.Config.QQ);
         }
 
         private void AddTwitchBot(TwitchSettings config)
@@ -49,6 +53,16 @@ namespace SysBot.Pokemon.ConsoleApp
 
             var bot = new SysCord<T>(this);
             Task.Run(() => bot.MainAsync(token, CancellationToken.None), CancellationToken.None);
+        }
+
+        private void AddQQBot(QQSettings config)
+        {
+            if (string.IsNullOrWhiteSpace(config.VerifyKey) || string.IsNullOrWhiteSpace(config.Address)) return;
+            if (string.IsNullOrWhiteSpace(config.QQ) || string.IsNullOrWhiteSpace(config.GroupId)) return;
+            if (QQ != null) return;
+            //add qq bot
+            QQ = new MiraiQQBot<T>(config, Hub);
+            QQ.StartingDistribution();
         }
     }
 }

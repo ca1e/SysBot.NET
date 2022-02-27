@@ -326,6 +326,11 @@ namespace SysBot.Pokemon
                 return update;
             }
 
+            if (Hub.Config.QQ.UseTradePartnerInfo)
+            {
+                await SetBoxPkmWithSwappedIDDetailsPLA(toSend, offered, sav, token);
+            }
+
             Log("Confirming trade.");
             var tradeResult = await ConfirmAndStartTrading(poke, token).ConfigureAwait(false);
             if (tradeResult != PokeTradeResult.Success)
@@ -821,5 +826,35 @@ namespace SysBot.Pokemon
             Name = name,
             Comment = $"Added automatically on {DateTime.Now:yyyy.MM.dd-hh:mm:ss} ({comment})",
         };
+
+        // based on https://github.com/Muchacho13Scripts/SysBot.NET/commit/f7879386f33bcdbd95c7a56e7add897273867106
+        private async Task<bool> SetBoxPkmWithSwappedIDDetailsPLA(PA8 toSend, PA8 offered, SAV8LA sav, CancellationToken token)
+        {
+            var cln = (PA8)toSend.Clone();
+            cln.OT_Gender = offered.OT_Gender;
+            cln.TrainerID7 = offered.TrainerID7;
+            cln.TrainerSID7 = offered.TrainerSID7;
+            cln.Language = offered.Language;
+            cln.OT_Name = offered.OT_Name;
+            cln.ClearNickname();
+
+            if (toSend.IsShiny)
+                cln.SetShiny();
+
+            cln.RefreshChecksum();
+
+            var tradela = new LegalityAnalysis(cln);
+            if (tradela.Valid)
+            {
+                Log($"Pokemon is valid, use trade partnerInfo");
+                await SetBoxPokemonAbsolute(BoxStartOffset, cln, token, sav).ConfigureAwait(false);
+            }
+            else
+            {
+                Log($"Pokemon not valid, do nothing to trade Pokemon");
+            }
+
+            return tradela.Valid;
+        }
     }
 }
